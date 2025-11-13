@@ -37,6 +37,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.vitalia_doctors.MainActivity
 import com.example.vitalia_doctors.views.nav.BottomNavItem
 
 // Color verde brillante similar al de la imagen para el botón y la navegación activa
@@ -47,14 +48,15 @@ val LivelyOffWhite = Color(0xFFF7F9FA)
 val LivelyDarkBlue = Color(0xFF1F2F4A)
 
 @Composable
-fun Home(recordarPantalla: NavHostController) {
+fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     val innerNavController = rememberNavController()
 
     // Lista de items para la navegación inferior
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Care,
-        BottomNavItem.Profile
+        BottomNavItem.Profile,
+        BottomNavItem.Notifications
     )
 
     Scaffold(
@@ -82,6 +84,10 @@ fun Home(recordarPantalla: NavHostController) {
             // Contenido de la pestaña PROFILE
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen()
+            }
+
+            composable(BottomNavItem.Notifications.route) {
+                Notifications(mainActivity = mainActivity)
             }
         }
     }

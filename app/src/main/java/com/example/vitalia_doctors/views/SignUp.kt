@@ -26,7 +26,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.vitalia_doctors.model.beans.SignUpRequest
+import com.example.vitalia_doctors.model.beans.iam.SignUpRequest
 import com.example.vitalia_doctors.model.client.RetrofitClient
 import kotlinx.coroutines.launch
 
