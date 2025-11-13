@@ -1,4 +1,4 @@
-package com.example.vitalia_doctors.model.beans
+package com.example.vitalia_doctors.model.beans.iam
 
 data class LogInResponse (
     val id: Long,

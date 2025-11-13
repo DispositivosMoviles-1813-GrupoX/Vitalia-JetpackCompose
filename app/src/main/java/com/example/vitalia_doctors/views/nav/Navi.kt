@@ -3,6 +3,7 @@ package com.example.vitalia_doctors.views.nav
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,7 +22,7 @@ fun Navi(mainActivity: MainActivity) {
     NavHost(navController = recordarPantalla, startDestination = "LogIn") {
         composable("LogIn") { LogIn(recordarPantalla, mainActivity) }
         composable("SignUp") { SignUp(recordarPantalla) }
-        composable("Home") { Home(recordarPantalla) }
+        composable("Home") { Home(recordarPantalla, mainActivity) }
     }
 }
 
@@ -37,4 +38,6 @@ sealed class BottomNavItem(
     object Care : BottomNavItem("care", Icons.Default.Favorite, "Care")
     // Corresponde a 'Profile' en la imagen
     object Profile : BottomNavItem("profile", Icons.Default.Person, "Profile")
+
+    object Notifications: BottomNavItem("notifications", Icons.Default.Notifications, "Notifications")
 }
