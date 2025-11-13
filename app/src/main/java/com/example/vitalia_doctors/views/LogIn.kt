@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.example.vitalia_doctors.MainActivity
-import com.example.vitalia_doctors.model.beans.LogInRequest
+import com.example.vitalia_doctors.model.beans.iam.LogInRequest
 import com.example.vitalia_doctors.model.client.RetrofitClient
 import kotlinx.coroutines.launch
 
@@ -222,6 +222,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
 
                             // Guarda el token si viene en la respuesta
                             body?.token?.let { editor.putString("token", it) }
+                            body?.id?.let { editor.putLong("userId", it) }
 
                             editor.apply()
                             editor.commit()
