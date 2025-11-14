@@ -253,8 +253,3 @@ fun ServiceCard(label: String, description: String) {
         }
     }
 }
-
-@Composable
-fun Notifications(mainActivity: MainActivity){
-    //TODO: Implementar la pantalla de notificaciones
-}

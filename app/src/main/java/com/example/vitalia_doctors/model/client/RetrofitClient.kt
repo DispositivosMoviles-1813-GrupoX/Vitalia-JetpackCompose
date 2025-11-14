@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
 import com.example.vitalia_doctors.model.response.WebService
-import com.example.vitalia_doctors.model.response.requiresAuth
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Invocation
@@ -21,19 +20,21 @@ object RetrofitClient {
     }
 
     private val authInterceptor = Interceptor { chain ->
-        val invocation = chain.request().tag(Invocation::class.java)!!
+        // No todas las peticiones necesitan el token (ej: LogIn, SignUp)
         val original = chain.request()
 
-        if (invocation.requiresAuth()) {
-            val token = sharedPreferences.getString("token", null)
-            val requestBuilder = original.newBuilder()
-            token?.let {
-                requestBuilder.header("Authorization", "Bearer $it")
-            }
-            chain.proceed(requestBuilder.build())
-        } else {
-            chain.proceed(original)
+        // Leemos el token guardado en SharedPreferences
+        val token = sharedPreferences.getString("token", null)
+
+        val requestBuilder = original.newBuilder()
+
+        // Si hay un token, lo agregamos como cabecera Bearer
+        token?.let {
+            requestBuilder.header("Authorization", "Bearer $it")
+
         }
+
+        chain.proceed(requestBuilder.build())
     }
 
     private val okHttpClient = OkHttpClient.Builder()
