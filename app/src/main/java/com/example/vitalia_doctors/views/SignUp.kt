@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.vitalia_doctors.model.beans.iam.SignUpRequest
 import com.example.vitalia_doctors.model.client.RetrofitClient
+import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,7 +46,7 @@ fun SignUp(recordarPantalla: NavHostController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Crear Cuenta", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.Blue)
+        Text("Crear Cuenta", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = LivelyGreen)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -85,7 +86,7 @@ fun SignUp(recordarPantalla: NavHostController) {
                             SignUpRequest(
                                 username = username,
                                 password = password,
-                                roles = listOf("ROLE_DOCTOR"),
+                                roles = setOf("ROLE_DOCTOR"),
                                 emailAddress = email
                             )
                         )
@@ -102,7 +103,7 @@ fun SignUp(recordarPantalla: NavHostController) {
                     }
                 }
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5)),
+            colors = ButtonDefaults.buttonColors(containerColor = LivelyGreen),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Registrar", color = Color.White, fontSize = 18.sp)
@@ -117,7 +118,7 @@ fun SignUp(recordarPantalla: NavHostController) {
         TextButton(
             onClick = { recordarPantalla.navigate("LogIn") }
         ) {
-            Text("¿Ya tienes cuenta? Inicia sesión", color = Color.Blue)
+            Text("¿Ya tienes cuenta? Inicia sesión", color = LivelyGreen)
         }
     }
 

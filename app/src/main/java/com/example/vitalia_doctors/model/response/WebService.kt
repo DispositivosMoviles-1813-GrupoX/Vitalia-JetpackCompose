@@ -25,6 +25,7 @@ interface WebService {
     ): Response<LogInResponse>
 
     // Notification - Services
+    @RequiresAuth
     @GET("notifications/userId/{userId}")
     suspend fun getNotifications(
         @Path("userId") userId: Long
