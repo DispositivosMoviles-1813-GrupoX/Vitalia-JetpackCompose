@@ -32,6 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vitalia_doctors.MainActivity
 import com.example.vitalia_doctors.model.beans.notifications.NotificationResponse
+import com.example.vitalia_doctors.ui.theme.LivelyDarkBlue
+import com.example.vitalia_doctors.ui.theme.LivelyGreen
+import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
 import com.example.vitalia_doctors.viewmodel.NotificationsViewModel
 
 @Composable

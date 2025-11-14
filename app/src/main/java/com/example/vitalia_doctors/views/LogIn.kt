@@ -49,6 +49,7 @@ import androidx.navigation.NavHostController
 import com.example.vitalia_doctors.MainActivity
 import com.example.vitalia_doctors.model.beans.iam.LogInRequest
 import com.example.vitalia_doctors.model.client.RetrofitClient
+import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -79,7 +80,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
         Text(
             text = "Login",
             fontSize = 32.sp,
-            color = Color.Blue,
+            color = LivelyGreen,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -98,7 +99,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                 )
             },
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = Color.Blue,
+                unfocusedTextColor = LivelyGreen,
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color(240, 240,
                     240),
@@ -122,7 +123,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                 )
             },
             colors = TextFieldDefaults.colors(
-                unfocusedTextColor = Color.Blue,
+                unfocusedTextColor = LivelyGreen,
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color(240, 240,
                     240),
@@ -162,7 +163,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                         Text(
                             text = message,
                             fontSize = 18.sp,
-                            color = Color.Blue,
+                            color = LivelyGreen,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center
                         )
@@ -188,8 +189,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
         ElevatedButton(
             colors =
                 ButtonDefaults.buttonColors(
-                    Color(50, 50, 250,
-                        250)
+                    containerColor = LivelyGreen
                 ),
             modifier = Modifier
                 .padding(10.dp)
@@ -291,15 +291,15 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "¿No tienes una cuenta?",
                 fontSize = 15.sp,
                 color = Color.Gray
             )
-            Spacer(modifier = Modifier.width(8.dp))
             androidx.compose.material3.TextButton(
                 onClick = {
                     // Navegar a la pantalla de SignUp
@@ -309,7 +309,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                 Text(
                     text = "Regístrate",
                     fontSize = 15.sp,
-                    color = Color.Blue,
+                    color = LivelyGreen,
                     fontWeight = FontWeight.Bold
                 )
             }

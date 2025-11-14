@@ -2,9 +2,12 @@ package com.example.vitalia_doctors.model.client
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
 import com.example.vitalia_doctors.model.response.WebService
+import com.example.vitalia_doctors.model.response.requiresAuth
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import retrofit2.Invocation
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -14,25 +17,23 @@ object RetrofitClient {
     private lateinit var sharedPreferences: SharedPreferences
 
     fun initialize(context: Context) {
-        // Asumiendo que el nombre de tus SharedPreferences es "pref1"
         sharedPreferences = context.getSharedPreferences("pref1", Context.MODE_PRIVATE)
     }
 
     private val authInterceptor = Interceptor { chain ->
-        // No todas las peticiones necesitan el token (ej: LogIn, SignUp)
+        val invocation = chain.request().tag(Invocation::class.java)!!
         val original = chain.request()
 
-        // Leemos el token guardado en SharedPreferences
-        val token = sharedPreferences.getString("token", null)
-
-        val requestBuilder = original.newBuilder()
-
-        // Si hay un token, lo agregamos como cabecera Bearer
-        token?.let {
-            requestBuilder.header("Authorization", "Bearer $it")
+        if (invocation.requiresAuth()) {
+            val token = sharedPreferences.getString("token", null)
+            val requestBuilder = original.newBuilder()
+            token?.let {
+                requestBuilder.header("Authorization", "Bearer $it")
+            }
+            chain.proceed(requestBuilder.build())
+        } else {
+            chain.proceed(original)
         }
-
-        chain.proceed(requestBuilder.build())
     }
 
     private val okHttpClient = OkHttpClient.Builder()
@@ -50,4 +51,12 @@ object RetrofitClient {
             .create(WebService::class.java)
     }
 
+    val appointmentApiService: AppointmentApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+            .create(AppointmentApiService::class.java)
+    }
 }

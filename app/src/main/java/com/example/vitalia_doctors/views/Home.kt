@@ -38,14 +38,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vitalia_doctors.MainActivity
+import com.example.vitalia_doctors.ui.theme.LivelyDarkBlue
+import com.example.vitalia_doctors.ui.theme.LivelyGreen
+import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
 import com.example.vitalia_doctors.views.nav.BottomNavItem
-
-// Color verde brillante similar al de la imagen para el botón y la navegación activa
-val LivelyGreen = Color(0xFF28D67F)
-// Color de fondo para la navegación inactiva y el contenido.
-val LivelyOffWhite = Color(0xFFF7F9FA)
-// Color de texto principal
-val LivelyDarkBlue = Color(0xFF1F2F4A)
+import com.example.vitalia_doctors.views.nav.CareNavigation
 
 @Composable
 fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
@@ -79,11 +76,11 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
             }
             // Contenido de la pestaña CARE
             composable(BottomNavItem.Care.route) {
-                CareScreen()
+                CareNavigation()
             }
             // Contenido de la pestaña PROFILE
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen()
+                // ProfileScreen() // Este es el que causa el conflicto
             }
 
             composable(BottomNavItem.Notifications.route) {
@@ -102,7 +99,7 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
     NavigationBar(
         containerColor = Color.White, // Fondo de la barra de navegación
         contentColor = LivelyDarkBlue, // Color por defecto del contenido
-        modifier = Modifier.height(60.dp) // Altura de la barra
+        modifier = Modifier.height(78.dp) // Altura de la barra
     ) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
@@ -201,7 +198,6 @@ fun HomeContent(modifier: Modifier = Modifier) {
         ServiceCard(label = "24/7 Support", description = "Immediate assistance whenever needed.")
 
         Spacer(Modifier.height(32.dp))
-
         // --- Contact Us Button ---
         Button(
             onClick = { /* Acción del botón */ },
@@ -256,4 +252,9 @@ fun ServiceCard(label: String, description: String) {
             )
         }
     }
+}
+
+@Composable
+fun Notifications(mainActivity: MainActivity){
+    //TODO: Implementar la pantalla de notificaciones
 }
