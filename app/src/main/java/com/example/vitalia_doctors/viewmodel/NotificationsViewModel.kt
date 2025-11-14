@@ -56,4 +56,70 @@ class NotificationsViewModel() : ViewModel() {
         }
     }
 
+    /**
+     * Función para buscar notificaciones por estado ASOCIADAS A UN USUARIO ESPECÍFICO.
+     * Esta es la nueva función que usa la combinación @Path y @Query.
+     * @param userId El ID del usuario.
+     * @param status El estado de la notificación a buscar (READ, UNREAD, etc.).
+     */
+    fun getNotificationsByUserIdAndStatus(userId: Long, status: String) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                // Ejecución en el hilo de IO
+                val response = withContext(Dispatchers.IO) {
+                    // Llama al nuevo servicio Retrofit
+                    RetrofitClient.webService.getNotificationsByUserIdAndStatus(userId, status)
+                }
+
+                if (response.isSuccessful) {
+                    // Si la respuesta es exitosa, actualizamos la lista con los resultados filtrados
+                    notificationsList = response.body() ?: emptyList()
+                } else {
+                    // Manejo de errores HTTP
+                    errorMessage = "Error al filtrar por estado '$status': Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                // Manejo de errores de conexión/deserialización
+                errorMessage = "Error de red al filtrar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Función para buscar notificaciones por estado (READ, UNREAD, ARCHIVED, UNARCHIVED).
+     * @param status El estado de la notificación a buscar.
+     */
+    fun searchNotificationsByStatus(status: String) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                // Ejecución en el hilo de IO
+                val response = withContext(Dispatchers.IO) {
+                    // Llamada al nuevo servicio Retrofit usando @Query
+                    RetrofitClient.webService.getNotificationByStatus(status)
+                }
+
+                if (response.isSuccessful) {
+                    // Si la respuesta es exitosa, actualizamos la lista con los resultados filtrados
+                    notificationsList = response.body() ?: emptyList()
+                } else {
+                    // Manejo de errores HTTP
+                    errorMessage = "Error al filtrar por estado '$status': Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                // Manejo de errores de conexión/deserialización
+                errorMessage = "Error de red al filtrar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
 }

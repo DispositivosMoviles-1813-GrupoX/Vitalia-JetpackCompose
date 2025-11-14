@@ -1,5 +1,6 @@
 package com.example.vitalia_doctors.model.response
 
+import retrofit2.http.Query
 import com.example.vitalia_doctors.model.beans.iam.LogInRequest
 import com.example.vitalia_doctors.model.beans.iam.LogInResponse
 import com.example.vitalia_doctors.model.beans.iam.SignUpRequest
@@ -28,6 +29,17 @@ interface WebService {
     @GET("notifications/userId/{userId}")
     suspend fun getNotifications(
         @Path("userId") userId: Long
+    ): Response<List<NotificationResponse>>
+
+    @GET("notifications/search")
+    suspend fun getNotificationByStatus(
+        @Query("status") status: String
+    ): Response<List<NotificationResponse>>
+
+    @GET("notifications/userId/{userId}/status")
+    suspend fun getNotificationsByUserIdAndStatus(
+        @Path("userId") userId: Long,
+        @Query("status") status: String
     ): Response<List<NotificationResponse>>
 
 }
