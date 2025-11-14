@@ -122,4 +122,71 @@ class NotificationsViewModel() : ViewModel() {
         }
     }
 
+    /**
+     * Marca una notificación específica como LEÍDA.
+     * @param notificationId El ID de la notificación a actualizar.
+     */
+    fun markNotificationAsRead(notificationId: Long) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.changeStatusToRead(notificationId)
+                }
+
+                if (response.isSuccessful) {
+                    // Opcional: Actualiza la lista localmente o recarga los datos desde el servidor
+                    updateNotificationStatusLocally(notificationId, "READ")
+                } else {
+                    errorMessage = "Error al marcar como leído: Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error de red al marcar como leído: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Marca una notificación específica como ARCHIVADA.
+     * @param notificationId El ID de la notificación a actualizar.
+     */
+    fun markNotificationAsArchived(notificationId: Long) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.changeStatusToArchived(notificationId)
+                }
+
+                if (response.isSuccessful) {
+                    // Opcional: Actualiza la lista localmente o recarga los datos desde el servidor
+                    updateNotificationStatusLocally(notificationId, "ARCHIVED")
+                } else {
+                    errorMessage = "Error al archivar: Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error de red al archivar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun updateNotificationStatusLocally(id: Long, newStatus: String) {
+        notificationsList = notificationsList.map { notification ->
+            if (notification.id == id) {
+                // Crea una copia de la notificación con el nuevo estado
+                notification.copy(status = newStatus)
+            } else {
+                notification
+            }
+        }
+    }
+
 }

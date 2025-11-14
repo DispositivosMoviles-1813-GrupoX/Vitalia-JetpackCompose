@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -104,7 +105,7 @@ fun Notifications(viewModel: NotificationsViewModel = viewModel(), mainActivity:
             text = "Notificaciones",
             style = MaterialTheme.typography.headlineLarge,
             color = LivelyDarkBlue,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold, // Hacemos el título más audaz
             modifier = Modifier.align(Alignment.Start)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -146,7 +147,11 @@ fun Notifications(viewModel: NotificationsViewModel = viewModel(), mainActivity:
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
                     items(notifications) { notification ->
-                        NotificationCard(notification = notification)
+                        NotificationCard(
+                            notification = notification,
+                            viewModel = viewModel,
+                            onActionSuccess = { loadNotifications(selectedFilter) }
+                        )
                     }
                 }
             }
@@ -168,13 +173,13 @@ fun FilterButtonsRow(
             Button(
                 onClick = { onFilterSelected(filter) },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) LivelyGreen else Color.LightGray,
+                    containerColor = if (isSelected) LivelyGreen else Color(0xFFE0E0E0), // Gris más limpio
                     contentColor = if (isSelected) Color.White else LivelyDarkBlue
                 ),
                 shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp) // Más padding
             ) {
-                Text(filter.capitalize(), style = MaterialTheme.typography.labelMedium)
+                Text(filter.capitalize(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -184,7 +189,11 @@ fun FilterButtonsRow(
  * Componente Composable para mostrar una sola notificación en una tarjeta simple.
  */
 @Composable
-fun NotificationCard(notification: NotificationResponse) {
+fun NotificationCard(
+    notification: NotificationResponse,
+    viewModel: NotificationsViewModel, // Añadido el ViewModel
+    onActionSuccess: () -> Unit // Añadida la función para refrescar la lista
+) {
     var showDialog by remember { mutableStateOf(false) }
 
     // Definición de colores distintivos
@@ -223,16 +232,17 @@ fun NotificationCard(notification: NotificationResponse) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 6.dp), // Padding vertical más ajustado
+        shape = RoundedCornerShape(12.dp), // Esquinas más redondeadas
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor // Color de fondo basado en el estado
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // Sombra un poco más visible
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(16.dp), // Más padding interno
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Indicador visual (Pequeño círculo de color)
@@ -246,7 +256,7 @@ fun NotificationCard(notification: NotificationResponse) {
             // 2. Título de la notificación (Ocupa el resto del espacio)
             Text(
                 text = notification.title,
-                fontWeight = if (notification.status == "UNREAD") FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (notification.status == "UNREAD") FontWeight.ExtraBold else FontWeight.SemiBold, // Hacemos el no leído más fuerte
                 color = LivelyDarkBlue,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
@@ -262,13 +272,19 @@ fun NotificationCard(notification: NotificationResponse) {
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // 4. Botón para mostrar el detalle
+            // 4. Botón para mostrar el detalle (Estilo más ligero)
             Button(
                 onClick = { showDialog = true },
                 modifier = Modifier.height(30.dp),
                 contentPadding = PaddingValues(horizontal = 10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF0F0F0), // Fondo muy claro
+                    contentColor = LivelyDarkBlue
+                ),
+                shape = RoundedCornerShape(8.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp) // Sin sombra
             ) {
-                Text("Ver Detalle", style = MaterialTheme.typography.labelSmall)
+                Text("Ver", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -277,7 +293,12 @@ fun NotificationCard(notification: NotificationResponse) {
     if (showDialog) {
         NotificationDetailDialog(
             notification = notification,
-            onDismiss = { showDialog = false }
+            viewModel = viewModel, // Pasando el ViewModel al diálogo
+            onDismiss = { showDialog = false },
+            onActionSuccess = {
+                showDialog = false
+                onActionSuccess() // Ejecuta la función de refresco
+            }
         )
     }
 }
@@ -286,20 +307,31 @@ fun NotificationCard(notification: NotificationResponse) {
  * Componente Diálogo para mostrar la información completa de la notificación.
  */
 @Composable
-fun NotificationDetailDialog(notification: NotificationResponse, onDismiss: () -> Unit) {
+fun NotificationDetailDialog(
+    notification: NotificationResponse,
+    viewModel: NotificationsViewModel,
+    onDismiss: () -> Unit,
+    onActionSuccess: () -> Unit // Callback para ejecutar después de la acción
+) {
+    val isArchived = notification.status == "ARCHIVED"
+    val isRead = notification.status == "READ"
+
+    // Asumimos que la acción "Marcar Leído" revierte el estado Archivada.
+    val readButtonText = if (isArchived) "Desarchivar (Leído)" else "Marcar Leído"
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp), // Más redondeado
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(24.dp), // Más padding
                 horizontalAlignment = Alignment.Start
             ) {
-                // Encabezado con título y botón de cerrar
+                // Encabezado
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -308,7 +340,7 @@ fun NotificationDetailDialog(notification: NotificationResponse, onDismiss: () -
                     Text(
                         text = "Detalle de Notificación",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = LivelyDarkBlue
                     )
                     IconButton(onClick = onDismiss) {
@@ -335,7 +367,7 @@ fun NotificationDetailDialog(notification: NotificationResponse, onDismiss: () -
                     style = MaterialTheme.typography.bodyLarge
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Divider(modifier = Modifier.padding(vertical = 12.dp), thickness = 1.dp, color = Color(0xFFE0E0E0)) // Separador
 
                 // Contenido de la Notificación
                 Text(
@@ -350,7 +382,7 @@ fun NotificationDetailDialog(notification: NotificationResponse, onDismiss: () -
                     style = MaterialTheme.typography.bodyMedium
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Divider(modifier = Modifier.padding(vertical = 12.dp), thickness = 1.dp, color = Color(0xFFE0E0E0)) // Separador
 
                 // Estado de la Notificación
                 Text(
@@ -365,15 +397,65 @@ fun NotificationDetailDialog(notification: NotificationResponse, onDismiss: () -
                     style = MaterialTheme.typography.bodyMedium
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp)) // Más espacio antes de los botones
+
+                // --- Botones de Acción ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Botón de MARCAR LEÍDO / DESARCHIVAR
+                    if (!isRead) { // Muestra si el estado NO es READ
+                        Button(
+                            onClick = {
+                                viewModel.markNotificationAsRead(notification.id)
+                                onActionSuccess()
+                            },
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            enabled = !viewModel.isLoading,
+                            shape = RoundedCornerShape(10.dp), // Esquinas ligeramente más suaves
+                            colors = ButtonDefaults.buttonColors(containerColor = LivelyGreen)
+                        ) {
+                            Text(readButtonText, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f).padding(end = 8.dp))
+                    }
+
+
+                    // Botón ARCHIVAR
+                    if (!isArchived) { // Solo muestra Archivar si NO está archivado
+                        Button(
+                            onClick = {
+                                viewModel.markNotificationAsArchived(notification.id)
+                                onActionSuccess()
+                            },
+                            modifier = Modifier.weight(1f).padding(start = 8.dp),
+                            enabled = !viewModel.isLoading,
+                            shape = RoundedCornerShape(10.dp), // Esquinas ligeramente más suaves
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF6A1B9A) // Púrpura
+                            )
+                        ) {
+                            Text(
+                                text = "Archivar",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Botón de cierre en la parte inferior
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0E0E0), contentColor = LivelyDarkBlue) // Botón de cierre más discreto
                 ) {
-                    Text("Entendido")
+                    Text("Cerrar", fontWeight = FontWeight.SemiBold)
                 }
             }
         }

@@ -42,4 +42,14 @@ interface WebService {
         @Query("status") status: String
     ): Response<List<NotificationResponse>>
 
+    @POST("notifications/{id}/mark-as-read")
+    suspend fun changeStatusToRead(
+        @Path("id") id: Long,
+    ): Response<NotificationResponse>
+
+    @POST("notifications/{id}/archive")
+    suspend fun changeStatusToArchived(
+        @Path("id") id: Long,
+    ): Response<NotificationResponse>
+
 }
