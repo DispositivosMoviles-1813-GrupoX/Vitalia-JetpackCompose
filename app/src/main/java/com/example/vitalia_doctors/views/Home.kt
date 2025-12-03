@@ -80,7 +80,7 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
             }
             // Contenido de la pestaña PROFILE
             composable(BottomNavItem.Profile.route) {
-                // ProfileScreen() // Este es el que causa el conflicto
+                ProfileScreen() // Este es el que causa el conflicto
             }
 
             composable(BottomNavItem.Notifications.route) {

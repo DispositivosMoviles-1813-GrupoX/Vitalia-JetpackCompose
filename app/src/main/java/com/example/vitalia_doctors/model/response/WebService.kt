@@ -52,4 +52,10 @@ interface WebService {
         @Path("id") id: Long,
     ): Response<NotificationResponse>
 
+    @GET("doctors/user/{userId}")
+    suspend fun getDoctorProfile(
+        @Path("userId") userId: Long
+    ): Response<com.example.vitalia_doctors.model.beans.Doctor>
+
+
 }

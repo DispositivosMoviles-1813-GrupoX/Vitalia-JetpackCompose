@@ -6,13 +6,12 @@ import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
 import com.example.vitalia_doctors.model.response.WebService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import retrofit2.Invocation
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8093/api/v1/"
+    private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"
     private lateinit var sharedPreferences: SharedPreferences
 
     fun initialize(context: Context) {
@@ -60,4 +59,14 @@ object RetrofitClient {
             .build()
             .create(AppointmentApiService::class.java)
     }
+
+    fun getUserId(): Long {
+        return sharedPreferences.getLong("userId", 0L)
+    }
+
+    fun clearSession() {
+        sharedPreferences.edit().clear().apply()
+    }
+
+
 }
