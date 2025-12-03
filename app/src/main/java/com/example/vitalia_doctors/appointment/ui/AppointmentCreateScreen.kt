@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.vitalia_doctors.appointment.domain.model.Appointment
+import com.example.vitalia_doctors.model.beans.appointment.Appointment
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,8 +22,6 @@ fun AppointmentCreateScreen(navController: NavController, viewModel: Appointment
     var residentId by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var reason by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
 
     // Supongamos que el ID del doctor se obtiene de las SharedPreferences o similar
     val doctorId = 1L // Reemplazar con la lógica real para obtener el ID del doctor
@@ -56,21 +54,15 @@ fun AppointmentCreateScreen(navController: NavController, viewModel: Appointment
             OutlinedTextField(value = date, onValueChange = { date = it }, label = { Text("Fecha (YYYY-MM-DD)") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(value = time, onValueChange = { time = it }, label = { Text("Hora (HH:MM)") }, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = reason, onValueChange = { reason = it }, label = { Text("Motivo") }, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas (Opcional)") }, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = {
                 val newAppointment = Appointment(
-                    appointmentId = 0L, // Se envía 0, que se convierte a null en el DTO
+                    id = 0L, // Se envía 0, que se convierte a null en el DTO
                     doctorId = doctorId,
                     residentId = residentId.toLongOrNull() ?: 0L,
                     date = date,
                     time = time,
-                    status = "SCHEDULED", // Estado por defecto
-                    reason = reason,
-                    notes = notes
+                    status = "SCHEDULED" // Estado por defecto
                 )
                 viewModel.createAppointment(newAppointment)
                 navController.popBackStack()

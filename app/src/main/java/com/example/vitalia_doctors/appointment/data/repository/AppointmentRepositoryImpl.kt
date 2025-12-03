@@ -1,7 +1,7 @@
 package com.example.vitalia_doctors.appointment.data.repository
 
 import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
-import com.example.vitalia_doctors.appointment.domain.model.Appointment
+import com.example.vitalia_doctors.model.beans.appointment.Appointment
 import com.example.vitalia_doctors.appointment.domain.repository.AppointmentRepository
 import com.example.vitalia_doctors.utils.Result
 

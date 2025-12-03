@@ -220,9 +220,10 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                                 editor.putBoolean("check", false)
                             }
 
-                            // Guarda el token si viene en la respuesta
+                            // Guarda el token, id y nombre del usuario
                             body?.token?.let { editor.putString("token", it) }
                             body?.id?.let { editor.putLong("userId", it) }
+                            body?.username?.let { editor.putString("firstName", it) } // <-- LÍNEA AÑADIDA
 
                             editor.apply()
                             editor.commit()

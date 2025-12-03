@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.vitalia_doctors.appointment.domain.model.Appointment
+import com.example.vitalia_doctors.model.beans.appointment.Appointment
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
 import com.example.vitalia_doctors.utils.Result
@@ -33,6 +33,15 @@ fun AppointmentListScreen(navController: NavController, viewModel: AppointmentVi
     viewModel.loadAppointmentsByDoctor(doctorId)
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Citas", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = LivelyGreen
+                )
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("appointments_create") },
@@ -50,14 +59,6 @@ fun AppointmentListScreen(navController: NavController, viewModel: AppointmentVi
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp)) // Espacio superior reducido
-            Text(
-                text = "Citas",
-                style = MaterialTheme.typography.headlineLarge,
-                color = LivelyGreen,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
 
             when (val result = appointmentsState) {
                 is Result.Success -> {
@@ -91,7 +92,7 @@ fun AppointmentCard(appointment: Appointment, navController: NavController) {
     Card(
         modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp),
-        onClick = { navController.navigate("appointments_detail/${appointment.appointmentId}") }
+        onClick = { navController.navigate("appointments_detail/${appointment.id}") }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Paciente ID: ${appointment.residentId}", fontWeight = FontWeight.Bold, fontSize = 20.sp)

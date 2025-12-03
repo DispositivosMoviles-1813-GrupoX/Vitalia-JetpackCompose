@@ -51,19 +51,13 @@ fun AppointmentDetailScreen(navController: NavController, viewModel: Appointment
                         Text("Fecha: ${appointment.date}", fontSize = 20.sp)
                         Text("Hora: ${appointment.time}", fontSize = 20.sp)
                         Text("Estado: ${appointment.status}", fontSize = 20.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Motivo:", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(appointment.reason ?: "No especificado", fontSize = 18.sp)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Notas:", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(appointment.notes ?: "Sin notas", fontSize = 18.sp)
                         Spacer(modifier = Modifier.height(32.dp))
                         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                             Button(onClick = { /* Lógica de Actualizar */ }, colors = ButtonDefaults.buttonColors(containerColor = LivelyGreen)) {
                                 Text("Actualizar")
                             }
                             Button(onClick = { 
-                                viewModel.deleteAppointment(appointment.appointmentId)
+                                viewModel.deleteAppointment(appointment.id)
                                 navController.popBackStack()
                             }, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
                                 Text("Eliminar")

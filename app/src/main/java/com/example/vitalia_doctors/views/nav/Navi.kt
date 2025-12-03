@@ -23,6 +23,7 @@ fun Navi(mainActivity: MainActivity) {
         composable("LogIn") { LogIn(recordarPantalla, mainActivity) }
         composable("SignUp") { SignUp(recordarPantalla) }
         composable("Home") { Home(recordarPantalla, mainActivity) }
+        // La ruta 'doctor_profile' se gestionará dentro de la pantalla Home
     }
 }
 
@@ -32,12 +33,9 @@ sealed class BottomNavItem(
     val icon: ImageVector,
     val label: String
 ) {
-    // Corresponde a 'Home' en la imagen
     object Home : BottomNavItem("home", Icons.Default.Home, "Home")
-    // Corresponde a 'Care' en la imagen (usamos un corazón como ejemplo)
     object Care : BottomNavItem("care", Icons.Default.Favorite, "Care")
-    // Corresponde a 'Profile' en la imagen
-    object Profile : BottomNavItem("profile", Icons.Default.Person, "Profile")
+    object Profile : BottomNavItem("doctor_profile", Icons.Default.Person, "Profile") // Ruta actualizada
 
     object Notifications: BottomNavItem("notifications", Icons.Default.Notifications, "Notifications")
 }

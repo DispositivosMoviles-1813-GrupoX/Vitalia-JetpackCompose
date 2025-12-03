@@ -13,10 +13,10 @@ interface AppointmentApiService {
     suspend fun getAppointmentById(@Path("appointmentId") appointmentId: Long): Response<AppointmentDto>
 
     @POST("appointments")
-    suspend fun createAppointment(@Body appointment: AppointmentDto): Response<Unit>
+    suspend fun createAppointment(@Body appointment: AppointmentDto): Response<AppointmentDto>
 
     @PUT("appointments/{appointmentId}")
-    suspend fun updateAppointment(@Path("appointmentId") appointmentId: Long, @Body appointment: AppointmentDto): Response<Unit>
+    suspend fun updateAppointment(@Path("appointmentId") appointmentId: Long, @Body appointment: AppointmentDto): Response<AppointmentDto>
 
     @DELETE("appointments/{appointmentId}")
     suspend fun deleteAppointment(@Path("appointmentId") appointmentId: Long): Response<Unit>

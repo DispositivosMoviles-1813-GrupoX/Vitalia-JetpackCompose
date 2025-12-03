@@ -32,12 +32,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vitalia_doctors.MainActivity
+import com.example.vitalia_doctors.doctor.data.remote.DoctorApiService
+import com.example.vitalia_doctors.doctor.domain.repository.DoctorRepositoryImpl
+import com.example.vitalia_doctors.doctor.ui.DoctorProfileScreen
+import com.example.vitalia_doctors.doctor.ui.DoctorViewModel
+import com.example.vitalia_doctors.model.client.RetrofitClient
 import com.example.vitalia_doctors.ui.theme.LivelyDarkBlue
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
@@ -48,7 +54,13 @@ import com.example.vitalia_doctors.views.nav.CareNavigation
 fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     val innerNavController = rememberNavController()
 
-    // Lista de items para la navegación inferior
+    // --- ViewModel Creation --- 
+    // Se crea aquí para que persista entre pestañas de la navegación inferior.
+    val doctorApiService = RetrofitClient.doctorApiService
+    val doctorRepository = DoctorRepositoryImpl(doctorApiService)
+    val factory = DoctorViewModel.DoctorViewModelFactory(doctorRepository)
+    val doctorViewModel = ViewModelProvider(mainActivity, factory).get(DoctorViewModel::class.java)
+
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Care,
@@ -57,32 +69,26 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     )
 
     Scaffold(
-        // La barra de navegación inferior
         bottomBar = {
-            // Pasamos el controlador de navegación INTERNO
             BottomNavigationBar(navController = innerNavController, items = items)
         },
-        containerColor = LivelyOffWhite // Fondo de toda la pantalla
+        containerColor = LivelyOffWhite
     ) { paddingValues ->
-        // 2. NavHost Anidado para el contenido de las pestañas
         NavHost(
             navController = innerNavController,
             startDestination = BottomNavItem.Home.route,
             Modifier.padding(paddingValues)
         ) {
-            // Contenido de la pestaña HOME (el diseño que solicitaste)
             composable(BottomNavItem.Home.route) {
                 HomeContent(Modifier.fillMaxSize())
             }
-            // Contenido de la pestaña CARE
             composable(BottomNavItem.Care.route) {
                 CareNavigation()
             }
-            // Contenido de la pestaña PROFILE
             composable(BottomNavItem.Profile.route) {
-                // ProfileScreen() // Este es el que causa el conflicto
+                // Ahora solo pasamos el ViewModel que ya fue creado.
+                DoctorProfileScreen(navController = innerNavController, viewModel = doctorViewModel)
             }
-
             composable(BottomNavItem.Notifications.route) {
                 Notifications(mainActivity = mainActivity)
             }
@@ -92,14 +98,13 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavItem>) {
-    // Obtiene la entrada actual del Back Stack para saber qué ruta está activa
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     NavigationBar(
-        containerColor = Color.White, // Fondo de la barra de navegación
-        contentColor = LivelyDarkBlue, // Color por defecto del contenido
-        modifier = Modifier.height(78.dp) // Altura de la barra
+        containerColor = Color.White,
+        contentColor = LivelyDarkBlue,
+        modifier = Modifier.height(78.dp)
     ) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
@@ -108,14 +113,12 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.label,
-                        // Cambia el color del icono si está seleccionado
                         tint = if (isSelected) LivelyGreen else Color.Gray
                     )
                 },
                 label = {
                     Text(
                         text = item.label,
-                        // Cambia el color del texto si está seleccionado
                         color = if (isSelected) LivelyGreen else Color.Gray,
                         fontSize = 10.sp
                     )
@@ -131,7 +134,7 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.White, // Opcional: para quitar el indicador de fondo
+                    indicatorColor = Color.White,
                     selectedIconColor = LivelyGreen,
                     unselectedIconColor = Color.Gray,
                     selectedTextColor = LivelyGreen,
@@ -154,7 +157,6 @@ fun HomeContent(modifier: Modifier = Modifier) {
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- Header ---
         Spacer(Modifier.height(32.dp))
         Text(
             text = "Lively",
@@ -179,7 +181,6 @@ fun HomeContent(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center
         )
 
-        // --- Services Section Title ---
         Spacer(Modifier.height(40.dp))
         Text(
             text = "Our Services",
@@ -189,16 +190,12 @@ fun HomeContent(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(24.dp))
 
-        // --- Services Cards (Simplified) ---
-        // Aquí irían las tarjetas de servicios (Care Management, Home Monitoring, etc.)
-        // Para simplificar, solo pondremos un placeholder
         ServiceCard(label = "Care Management", description = "Personalized care plans and coordination.")
         ServiceCard(label = "Home Monitoring", description = "Real-time alerts and activity tracking.")
         ServiceCard(label = "Family Collaboration", description = "Shared access and communication tools.")
         ServiceCard(label = "24/7 Support", description = "Immediate assistance whenever needed.")
 
         Spacer(Modifier.height(32.dp))
-        // --- Contact Us Button ---
         Button(
             onClick = { /* Acción del botón */ },
             modifier = Modifier
@@ -228,7 +225,6 @@ fun ServiceCard(label: String, description: String) {
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Placeholder para el Icono (usando el ícono de corazón para ejemplificar)
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = null,

@@ -1,6 +1,6 @@
 package com.example.vitalia_doctors.appointment.domain.repository
 
-import com.example.vitalia_doctors.appointment.domain.model.Appointment
+import com.example.vitalia_doctors.model.beans.appointment.Appointment
 import com.example.vitalia_doctors.utils.Result
 
 interface AppointmentRepository {

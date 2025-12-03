@@ -3,6 +3,7 @@ package com.example.vitalia_doctors.model.client
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
+import com.example.vitalia_doctors.doctor.data.remote.DoctorApiService
 import com.example.vitalia_doctors.model.response.WebService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -12,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8093/api/v1/"
+    private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"
     private lateinit var sharedPreferences: SharedPreferences
 
     fun initialize(context: Context) {
@@ -59,5 +60,14 @@ object RetrofitClient {
             .client(okHttpClient)
             .build()
             .create(AppointmentApiService::class.java)
+    }
+
+    val doctorApiService: DoctorApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+            .create(DoctorApiService::class.java)
     }
 }
