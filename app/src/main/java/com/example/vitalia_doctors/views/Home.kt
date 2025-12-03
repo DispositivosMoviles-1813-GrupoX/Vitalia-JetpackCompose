@@ -1,74 +1,72 @@
 package com.example.vitalia_doctors.views
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vitalia_doctors.MainActivity
-import com.example.vitalia_doctors.doctor.data.remote.DoctorApiService
-import com.example.vitalia_doctors.doctor.domain.repository.DoctorRepositoryImpl
-import com.example.vitalia_doctors.doctor.ui.DoctorProfileScreen
-import com.example.vitalia_doctors.doctor.ui.DoctorViewModel
-import com.example.vitalia_doctors.model.client.RetrofitClient
 import com.example.vitalia_doctors.ui.theme.LivelyDarkBlue
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
 import com.example.vitalia_doctors.views.nav.BottomNavItem
 import com.example.vitalia_doctors.views.nav.CareNavigation
 
+// ---------- MODELOS PARA LA VISTA DE PAGOS ----------
+
+data class DoctorPaymentsUiState(
+    val residentName: String,
+    val amountDue: String,
+    val paymentHistory: List<PaymentHistoryItem>,
+)
+
+data class PaymentHistoryItem(
+    val id: String,
+    val title: String,
+    val method: String,
+    val amount: String,
+)
+
+// ---------------------------------------------------
+
 @Composable
 fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     val innerNavController = rememberNavController()
 
-    // --- ViewModel Creation --- 
-    // Se crea aquí para que persista entre pestañas de la navegación inferior.
-    val doctorApiService = RetrofitClient.doctorApiService
-    val doctorRepository = DoctorRepositoryImpl(doctorApiService)
-    val factory = DoctorViewModel.DoctorViewModelFactory(doctorRepository)
-    val doctorViewModel = ViewModelProvider(mainActivity, factory).get(DoctorViewModel::class.java)
-
+    // Lista de items para la navegación inferior
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Care,
+        BottomNavItem.Residents,
         BottomNavItem.Profile,
         BottomNavItem.Notifications
     )
 
     Scaffold(
+        // La barra de navegación inferior
         bottomBar = {
             BottomNavigationBar(navController = innerNavController, items = items)
         },
@@ -85,9 +83,17 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
             composable(BottomNavItem.Care.route) {
                 CareNavigation()
             }
+            // 👇 AQUÍ MOSTRAMOS LA VISTA DE PAYMENTS CUANDO SE ELIGE RESIDENTS
+            composable(BottomNavItem.Residents.route) {
+                DoctorPaymentsContent(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(LivelyOffWhite)
+                        .padding(horizontal = 16.dp)
+                )
+            }
             composable(BottomNavItem.Profile.route) {
-                // Ahora solo pasamos el ViewModel que ya fue creado.
-                DoctorProfileScreen(navController = innerNavController, viewModel = doctorViewModel)
+                // ProfileScreen()
             }
             composable(BottomNavItem.Notifications.route) {
                 Notifications(mainActivity = mainActivity)
@@ -245,6 +251,194 @@ fun ServiceCard(label: String, description: String) {
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+//
+// --------- CONTENIDO DE LA VISTA "FINANCE / RESIDENT PAYMENTS" ---------
+//  (sin Scaffold; usa el Scaffold de Home)
+//
+
+@Composable
+fun DoctorPaymentsContent(modifier: Modifier = Modifier) {
+    val state = remember {
+        DoctorPaymentsUiState(
+            residentName = "Eleanor Harper",
+            amountDue = "$1,250.00",
+            paymentHistory = listOf(
+                PaymentHistoryItem("1", "Payment Received", "Credit Card", "$1,250.00"),
+                PaymentHistoryItem("2", "Payment Received", "Credit Card", "$1,250.00"),
+                PaymentHistoryItem("3", "Payment Received", "Credit Card", "$1,250.00")
+            )
+        )
+    }
+
+    Column(
+        modifier = modifier.padding(top = 24.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        // Título superior
+        Text(
+            text = "Finance",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = LivelyDarkBlue
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --------- CARD RESIDENT PAYMENTS ----------
+        Text(
+            text = "Resident Payments",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = LivelyDarkBlue
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Resident: ${state.residentName}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = state.amountDue,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = LivelyDarkBlue
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Amount Due",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LivelyGreen,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFF0D0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Resident avatar",
+                        tint = Color(0xFFE8793E),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --------- PAYMENT HISTORY ----------
+        Text(
+            text = "Payment History",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold
+            ),
+            color = LivelyDarkBlue
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(bottom = 96.dp)
+        ) {
+            items(state.paymentHistory) { payment ->
+                PaymentHistoryCard(
+                    item = payment,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PaymentHistoryCard(
+    item: PaymentHistoryItem,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(LivelyGreen.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite, // podrías cambiar a un ícono de pago
+                    contentDescription = "Payment icon",
+                    tint = LivelyGreen
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = LivelyDarkBlue
+                )
+                Text(
+                    text = item.method,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+
+            Text(
+                text = item.amount,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = LivelyDarkBlue
             )
         }
     }

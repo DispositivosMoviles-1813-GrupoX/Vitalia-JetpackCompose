@@ -56,4 +56,137 @@ class NotificationsViewModel() : ViewModel() {
         }
     }
 
+    /**
+     * Función para buscar notificaciones por estado ASOCIADAS A UN USUARIO ESPECÍFICO.
+     * Esta es la nueva función que usa la combinación @Path y @Query.
+     * @param userId El ID del usuario.
+     * @param status El estado de la notificación a buscar (READ, UNREAD, etc.).
+     */
+    fun getNotificationsByUserIdAndStatus(userId: Long, status: String) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                // Ejecución en el hilo de IO
+                val response = withContext(Dispatchers.IO) {
+                    // Llama al nuevo servicio Retrofit
+                    RetrofitClient.webService.getNotificationsByUserIdAndStatus(userId, status)
+                }
+
+                if (response.isSuccessful) {
+                    // Si la respuesta es exitosa, actualizamos la lista con los resultados filtrados
+                    notificationsList = response.body() ?: emptyList()
+                } else {
+                    // Manejo de errores HTTP
+                    errorMessage = "Error al filtrar por estado '$status': Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                // Manejo de errores de conexión/deserialización
+                errorMessage = "Error de red al filtrar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Función para buscar notificaciones por estado (READ, UNREAD, ARCHIVED, UNARCHIVED).
+     * @param status El estado de la notificación a buscar.
+     */
+    fun searchNotificationsByStatus(status: String) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                // Ejecución en el hilo de IO
+                val response = withContext(Dispatchers.IO) {
+                    // Llamada al nuevo servicio Retrofit usando @Query
+                    RetrofitClient.webService.getNotificationByStatus(status)
+                }
+
+                if (response.isSuccessful) {
+                    // Si la respuesta es exitosa, actualizamos la lista con los resultados filtrados
+                    notificationsList = response.body() ?: emptyList()
+                } else {
+                    // Manejo de errores HTTP
+                    errorMessage = "Error al filtrar por estado '$status': Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                // Manejo de errores de conexión/deserialización
+                errorMessage = "Error de red al filtrar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Marca una notificación específica como LEÍDA.
+     * @param notificationId El ID de la notificación a actualizar.
+     */
+    fun markNotificationAsRead(notificationId: Long) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.changeStatusToRead(notificationId)
+                }
+
+                if (response.isSuccessful) {
+                    // Opcional: Actualiza la lista localmente o recarga los datos desde el servidor
+                    updateNotificationStatusLocally(notificationId, "READ")
+                } else {
+                    errorMessage = "Error al marcar como leído: Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error de red al marcar como leído: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Marca una notificación específica como ARCHIVADA.
+     * @param notificationId El ID de la notificación a actualizar.
+     */
+    fun markNotificationAsArchived(notificationId: Long) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.changeStatusToArchived(notificationId)
+                }
+
+                if (response.isSuccessful) {
+                    // Opcional: Actualiza la lista localmente o recarga los datos desde el servidor
+                    updateNotificationStatusLocally(notificationId, "ARCHIVED")
+                } else {
+                    errorMessage = "Error al archivar: Código ${response.code()}"
+                }
+            } catch (e: Exception) {
+                errorMessage = "Error de red al archivar: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun updateNotificationStatusLocally(id: Long, newStatus: String) {
+        notificationsList = notificationsList.map { notification ->
+            if (notification.id == id) {
+                // Crea una copia de la notificación con el nuevo estado
+                notification.copy(status = newStatus)
+            } else {
+                notification
+            }
+        }
+    }
+
 }

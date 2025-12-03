@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
@@ -23,7 +24,6 @@ fun Navi(mainActivity: MainActivity) {
         composable("LogIn") { LogIn(recordarPantalla, mainActivity) }
         composable("SignUp") { SignUp(recordarPantalla) }
         composable("Home") { Home(recordarPantalla, mainActivity) }
-        // La ruta 'doctor_profile' se gestionará dentro de la pantalla Home
     }
 }
 
@@ -33,9 +33,14 @@ sealed class BottomNavItem(
     val icon: ImageVector,
     val label: String
 ) {
+
+    object Residents : BottomNavItem("residents", Icons.Default.Person, "Residents")
+    // Corresponde a 'Home' en la imagen
     object Home : BottomNavItem("home", Icons.Default.Home, "Home")
+    // Corresponde a 'Care' en la imagen (usamos un corazón como ejemplo)
     object Care : BottomNavItem("care", Icons.Default.Favorite, "Care")
-    object Profile : BottomNavItem("doctor_profile", Icons.Default.Person, "Profile") // Ruta actualizada
+    // Corresponde a 'Profile' en la imagen
+    object Profile : BottomNavItem("profile", Icons.Default.Person, "Profile")
 
     object Notifications: BottomNavItem("notifications", Icons.Default.Notifications, "Notifications")
 }
