@@ -86,17 +86,17 @@ fun SignUp(recordarPantalla: NavHostController) {
                             SignUpRequest(
                                 username = username,
                                 password = password,
-                                roles = setOf("ROLE_DOCTOR"),
+                                roles = setOf("ROLE_DOCTOR"), // Asignar rol de doctor
                                 emailAddress = email
                             )
                         )
                         if (response.isSuccessful) {
                             message = "Registro exitoso ✅"
                             // Vuelve al login después de un breve delay
-                            kotlinx.coroutines.delay(1000)
+                            kotlinx.coroutines.delay(1500)
                             recordarPantalla.navigate("LogIn")
                         } else {
-                            message = "Error: ${response.code()} - ${response.errorBody()?.string()}"
+                            message = "Error en el registro: ${response.code()}"
                         }
                     } catch (e: Exception) {
                         message = "Error de red: ${e.message}"
@@ -111,7 +111,9 @@ fun SignUp(recordarPantalla: NavHostController) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(text = message, color = Color.Gray)
+        if (message.isNotEmpty()) {
+            Text(text = message, color = if (message.startsWith("Error")) Color.Red else LivelyGreen)
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -121,5 +123,4 @@ fun SignUp(recordarPantalla: NavHostController) {
             Text("¿Ya tienes cuenta? Inicia sesión", color = LivelyGreen)
         }
     }
-
 }

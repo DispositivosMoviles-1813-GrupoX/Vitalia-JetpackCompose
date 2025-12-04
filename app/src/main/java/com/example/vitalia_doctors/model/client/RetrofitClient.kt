@@ -2,7 +2,6 @@ package com.example.vitalia_doctors.model.client
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.vitalia_doctors.appointment.data.remote.AppointmentApiService
 import com.example.vitalia_doctors.doctor.data.remote.DoctorApiService
 import com.example.vitalia_doctors.model.response.WebService
 import okhttp3.Interceptor
@@ -53,14 +52,6 @@ object RetrofitClient {
             .create(WebService::class.java)
     }
 
-    val appointmentApiService: AppointmentApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-            .create(AppointmentApiService::class.java)
-    }
 
     val doctorApiService: DoctorApiService by lazy {
         Retrofit.Builder()
