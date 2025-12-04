@@ -1,5 +1,6 @@
 package com.example.vitalia_doctors.doctor.ui
 
+import android.Manifest
 import android.content.Context
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -90,15 +91,26 @@ fun DoctorProfileScreen(navController: NavController, viewModel: DoctorViewModel
     }
 }
 
-// --- FORMULARIO UNIFICADO PARA CREAR Y EDITAR ---
 @Composable
 fun ProfileForm(doctor: Doctor?, userId: Long, viewModel: DoctorViewModel, onSave: () -> Unit, onCancel: () -> Unit) {
-    val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? -> imageUri = uri }
+    )
+
+    // Lanzador para la petición de permisos
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted: Boolean ->
+            if (isGranted) {
+                // Si el permiso es concedido, lanzar la galería
+                imagePickerLauncher.launch("image/*")
+            } else {
+                // Opcional: Mostrar un mensaje al usuario (ej. con un Snackbar)
+            }
+        }
     )
 
     var licenseNumber by remember { mutableStateOf(doctor?.licenseNumber ?: "") }
@@ -121,7 +133,8 @@ fun ProfileForm(doctor: Doctor?, userId: Long, viewModel: DoctorViewModel, onSav
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             ProfileHeader(imageUri = imageUri, fullName = "$docFirstName $docLastName", isEditing = true) {
-                imagePickerLauncher.launch("image/*")
+                // Al hacer clic, pedir el permiso
+                permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
             }
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -154,7 +167,6 @@ fun ProfileForm(doctor: Doctor?, userId: Long, viewModel: DoctorViewModel, onSav
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Botones fijos en la parte inferior
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -164,8 +176,6 @@ fun ProfileForm(doctor: Doctor?, userId: Long, viewModel: DoctorViewModel, onSav
             }
             Button(
                 onClick = {
-                    // Aquí iría la lógica para subir la imagen (imageUri) y obtener la URL
-                    // Por ahora, guardamos los datos de texto.
                     if (doctor == null) {
                         val dto = DoctorDto(licenseNumber, specialty, FullNameDto(docFirstName, docLastName), ContactInfoDto(phone, AddressDto(street, city, state, zipCode, country)), userId)
                         viewModel.createDoctor(dto)
@@ -183,10 +193,13 @@ fun ProfileForm(doctor: Doctor?, userId: Long, viewModel: DoctorViewModel, onSav
     }
 }
 
-// --- VISTA DE SÓLO LECTURA ---
 @Composable
 fun ShowProfile(doctor: Doctor?, onEditClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         ProfileHeader(imageUri = null, fullName = doctor?.fullName?.let { "${it.firstName} ${it.lastName}" } ?: "Sin Perfil", isEditing = false) {}
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -226,7 +239,6 @@ fun ShowProfile(doctor: Doctor?, onEditClick: () -> Unit) {
     }
 }
 
-// --- COMPONENTES REUTILIZABLES ---
 @Composable
 fun ProfileHeader(imageUri: Uri?, fullName: String, isEditing: Boolean, onImageClick: () -> Unit) {
     val context = LocalContext.current
