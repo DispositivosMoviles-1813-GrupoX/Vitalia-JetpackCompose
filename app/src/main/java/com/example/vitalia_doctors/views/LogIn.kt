@@ -50,7 +50,9 @@ import com.example.vitalia_doctors.MainActivity
 import com.example.vitalia_doctors.model.beans.iam.LogInRequest
 import com.example.vitalia_doctors.model.client.RetrofitClient
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
@@ -198,41 +200,43 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
             onClick = {
                 scope.launch {
                     try {
-                        val response = RetrofitClient.webService.signIn(
-                            LogInRequest(
-                                username = txtUsu,
-                                password = txtPass
+                        val response = withContext(Dispatchers.IO) {
+                            RetrofitClient.webService.signIn(
+                                LogInRequest(
+                                    username = txtUsu,
+                                    password = txtPass
+                                )
                             )
-                        )
+                        }
 
                         if (response.isSuccessful) {
                             val body = response.body()
 
-                            // Guarda token o datos si el login fue correcto
-                            val editor: SharedPreferences.Editor = pref!!.edit()
-                            if (chk) {
-                                editor.putString("usu", txtUsu)
-                                editor.putString("pas", txtPass)
-                                editor.putBoolean("check", true)
-                            } else {
-                                editor.putString("usu", "")
-                                editor.putString("pas", "")
-                                editor.putBoolean("check", false)
+                            // Usar la nueva función para guardar el token
+                            RetrofitClient.setToken(body?.token)
+
+                            withContext(Dispatchers.IO) {
+                                val editor: SharedPreferences.Editor = pref!!.edit()
+                                if (chk) {
+                                    editor.putString("usu", txtUsu)
+                                    editor.putString("pas", txtPass)
+                                    editor.putBoolean("check", true)
+                                } else {
+                                    editor.remove("usu")
+                                    editor.remove("pas")
+                                    editor.putBoolean("check", false)
+                                }
+
+                                // Guardar otros datos del usuario
+                                body?.id?.let { editor.putLong("userId", it) }
+                                body?.username?.let { editor.putString("firstName", it) }
+
+                                editor.apply()
                             }
 
-                            // Guarda el token, id y nombre del usuario
-                            body?.token?.let { editor.putString("token", it) }
-                            body?.id?.let { editor.putLong("userId", it) }
-                            body?.username?.let { editor.putString("firstName", it) } // <-- LÍNEA AÑADIDA
-
-                            editor.apply()
-                            editor.commit()
-
-                            // Navegar al Home
                             recordarPantalla.navigate("Home")
 
                         } else {
-                            // Mostrar mensaje de error del servidor
                             isDisplay = true
                             message = "Credenciales incorrectas o error ${response.code()}"
                         }
@@ -260,7 +264,6 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                 onCheckedChange = {
                     chk = it
                 },
-                //NO OBLIGATORIO
                 thumbContent = if (chk) {
                     {
                         Icon(
@@ -270,14 +273,7 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
                         )
                     }
                 } else {
-                    {
-                        Icon(
-                            imageVector = Icons.Filled.Lock,
-                            contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize)
-                                .background(Color.Red),
-                        )
-                    }
+                    null
                 }
             )
             Text(
@@ -303,7 +299,6 @@ fun LogIn(recordarPantalla: NavHostController, mainActivity: MainActivity) {
             )
             androidx.compose.material3.TextButton(
                 onClick = {
-                    // Navegar a la pantalla de SignUp
                     recordarPantalla.navigate("SignUp")
                 }
             ) {

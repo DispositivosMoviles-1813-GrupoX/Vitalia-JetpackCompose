@@ -6,5 +6,6 @@ data class Doctor(
     val specialty: String,
     val schedules: List<Schedule>,
     val fullName: FullName,
-    val contactInfo: ContactInfo
+    val contactInfo: ContactInfo,
+    val userId: Long // Campo añadido para enlazar con el usuario
 )

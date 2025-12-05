@@ -25,7 +25,7 @@ interface WebService {
     @POST("authentication/sign-in")
     suspend fun signIn(
         @Body request: LogInRequest
-    ): Response<LogInResponse>
+    ): Response<LogInResponse> // Se restaura a LogInResponse
 
     // Notification - Services
     @GET("notifications/userId/{userId}")

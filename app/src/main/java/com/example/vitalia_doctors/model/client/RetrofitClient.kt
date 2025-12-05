@@ -4,71 +4,74 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.vitalia_doctors.doctor.data.remote.DoctorApiService
 import com.example.vitalia_doctors.model.response.WebService
+import com.example.vitalia_doctors.payments.data.remote.ReceiptsApiService
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import retrofit2.Invocation
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
-import com.example.vitalia_doctors.payments.data.remote.ReceiptsApiService
 
 object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"
     private lateinit var sharedPreferences: SharedPreferences
 
+    var token: String? = null
+        private set
+
     fun initialize(context: Context) {
         sharedPreferences = context.getSharedPreferences("pref1", Context.MODE_PRIVATE)
+        token = sharedPreferences.getString("token", null)
+    }
+
+    fun setToken(newToken: String?) {
+        token = newToken
+        sharedPreferences.edit().apply {
+            if (newToken == null) {
+                remove("token")
+            } else {
+                putString("token", newToken)
+            }
+            apply()
+        }
     }
 
     private val authInterceptor = Interceptor { chain ->
-        // No todas las peticiones necesitan el token (ej: LogIn, SignUp)
         val original = chain.request()
-
-        // Leemos el token guardado en SharedPreferences
-        val token = sharedPreferences.getString("token", null)
-
         val requestBuilder = original.newBuilder()
-
-        // Si hay un token, lo agregamos como cabecera Bearer
         token?.let {
             requestBuilder.header("Authorization", "Bearer $it")
-
         }
-
         chain.proceed(requestBuilder.build())
+    }
+
+    // Interceptor para registrar el cuerpo de las respuestas
+    private val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
+        .addInterceptor(loggingInterceptor) // Añadimos el interceptor de registro
         .readTimeout(30, TimeUnit.SECONDS)
         .connectTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    val webService: WebService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-            .create(WebService::class.java)
-    }
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 
+    val webService: WebService by lazy {
+        retrofit.create(WebService::class.java)
+    }
 
     val doctorApiService: DoctorApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-            .create(DoctorApiService::class.java)
-    }
-    val receiptsApiService: ReceiptsApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-            .create(ReceiptsApiService::class.java)
+        retrofit.create(DoctorApiService::class.java)
     }
 
+    val receiptsApiService: ReceiptsApiService by lazy {
+        retrofit.create(ReceiptsApiService::class.java)
+    }
 }

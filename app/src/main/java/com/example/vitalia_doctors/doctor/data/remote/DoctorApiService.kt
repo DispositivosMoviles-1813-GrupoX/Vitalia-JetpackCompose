@@ -3,6 +3,7 @@ package com.example.vitalia_doctors.doctor.data.remote
 import com.example.vitalia_doctors.doctor.data.dto.DoctorDto
 import com.example.vitalia_doctors.doctor.data.dto.UpdateDoctorDto
 import com.example.vitalia_doctors.model.beans.doctor.Doctor
+import com.example.vitalia_doctors.model.beans.resident.Resident
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -23,5 +24,11 @@ interface DoctorApiService {
 
     @PUT("doctors/{id}")
     suspend fun updateDoctor(@Path("id") doctorId: Long, @Body doctor: UpdateDoctorDto): Response<Doctor>
+
+    @GET("doctors/{id}/residents")
+    suspend fun getAssignedResidents(@Path("id") doctorId: Long): Response<List<Resident>>
+
+    @GET("residents")
+    suspend fun getAllResidents(): Response<List<Resident>>
 
 }
