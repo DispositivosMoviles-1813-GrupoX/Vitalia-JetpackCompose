@@ -5,6 +5,8 @@ import com.example.vitalia_doctors.model.beans.iam.LogInRequest
 import com.example.vitalia_doctors.model.beans.iam.LogInResponse
 import com.example.vitalia_doctors.model.beans.iam.SignUpRequest
 import com.example.vitalia_doctors.model.beans.iam.SignUpResponse
+import com.example.vitalia_doctors.model.beans.notifications.FamilyMemberResponse
+import com.example.vitalia_doctors.model.beans.notifications.NotificationRequest
 import com.example.vitalia_doctors.model.beans.notifications.NotificationResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -52,4 +54,12 @@ interface WebService {
         @Path("id") id: Long,
     ): Response<NotificationResponse>
 
+    @POST("notifications/alert")
+    suspend fun makeAlertNotification(
+        @Body request: NotificationRequest
+    ): Response<NotificationResponse>
+
+    @GET("family-members")
+    suspend fun getFamilyMembers(
+    ): Response<List<FamilyMemberResponse>>
 }

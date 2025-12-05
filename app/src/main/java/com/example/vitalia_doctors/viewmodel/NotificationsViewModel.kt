@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vitalia_doctors.model.beans.notifications.FamilyMemberResponse
+import com.example.vitalia_doctors.model.beans.notifications.NotificationRequest
 import com.example.vitalia_doctors.model.beans.notifications.NotificationResponse
 import com.example.vitalia_doctors.model.client.RetrofitClient
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,13 @@ class NotificationsViewModel() : ViewModel() {
 
     // Estado para manejar mensajes de error
     var errorMessage: String? by mutableStateOf(null)
+
+    // Resultado de la notificación creada
+    var createdNotification: NotificationResponse? by mutableStateOf(null)
+        private set
+
+    var familyMembers: List<FamilyMemberResponse> by mutableStateOf(emptyList())
+        private set
 
     /**
      * Función para obtener todas las notificaciones de un usuario.
@@ -189,4 +198,61 @@ class NotificationsViewModel() : ViewModel() {
         }
     }
 
+    fun sendNotification(title: String, content: String, userId: Long) {
+        val request = NotificationRequest(
+            title = title,
+            content = content,
+            userId = userId
+        )
+
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            createdNotification = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.makeAlertNotification(request)
+                }
+
+                if (response.isSuccessful) {
+                    createdNotification = response.body()
+                } else {
+                    errorMessage = "Error al enviar notificación: Código ${response.code()}"
+                }
+
+            } catch (e: Exception) {
+                errorMessage = "Error de red: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    /**
+     * Obtiene todos los familiares registrados
+     */
+    fun loadFamilyMembers() {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+
+            try {
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.webService.getFamilyMembers()
+                }
+
+                if (response.isSuccessful) {
+                    familyMembers = response.body() ?: emptyList()
+                } else {
+                    errorMessage = "Error al obtener familiares: Código ${response.code()}"
+                }
+
+            } catch (e: Exception) {
+                errorMessage = "Error de red: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 }
