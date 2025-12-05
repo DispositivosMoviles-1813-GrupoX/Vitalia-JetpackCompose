@@ -77,6 +77,21 @@ import java.util.Locale
 @Composable
 fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     val innerNavController = rememberNavController()
+    val context = LocalContext.current
+
+    // This effect checks for a one-time flag to redirect to the profile screen.
+    LaunchedEffect(key1 = Unit) {
+        val sharedPreferences = context.getSharedPreferences("pref1", Context.MODE_PRIVATE)
+        if (sharedPreferences.getBoolean("first_login_pending", false)) {
+            // Reset the flag so this doesn't happen again.
+            sharedPreferences.edit().putBoolean("first_login_pending", false).apply()
+            // Navigate to the profile screen.
+            innerNavController.navigate(BottomNavItem.Profile.route) {
+                // Pop the home screen from the back stack of the inner nav controller.
+                popUpTo(BottomNavItem.Home.route) { inclusive = true }
+            }
+        }
+    }
 
     // --- Repositories ---
     val doctorRepository = DoctorRepositoryImpl(RetrofitClient.doctorApiService)
