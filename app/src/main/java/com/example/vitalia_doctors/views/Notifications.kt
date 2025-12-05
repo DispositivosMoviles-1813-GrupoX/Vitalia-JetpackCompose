@@ -3,6 +3,7 @@ package com.example.vitalia_doctors.views
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,21 +63,18 @@ val filterOptions = listOf("ALL", "UNREAD", "READ", "ARCHIVED", "UNARCHIVED")
 
 @Composable
 fun Notifications(viewModel: NotificationsViewModel = viewModel(), mainActivity: MainActivity) {
-    // 2. Obtener el estado del ViewModel
+
     val notifications = viewModel.notificationsList
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
 
-    // 3. Estado del filtro seleccionado
     var selectedFilter by remember { mutableStateOf("ALL") }
 
-    // 4. Obtener el userId de SharedPreferences solo una vez
     val currentUserId by remember {
         val pref = mainActivity.getSharedPreferences("pref1", Context.MODE_PRIVATE)
         mutableLongStateOf(pref.getLong("userId", 0L))
     }
 
-    // 5. Función para manejar la lógica de carga/filtrado
     val loadNotifications: (String) -> Unit = { status ->
         if (currentUserId > 0L) {
             when (status) {
@@ -87,77 +86,86 @@ fun Notifications(viewModel: NotificationsViewModel = viewModel(), mainActivity:
         }
     }
 
-    // 6. Efecto para cargar las notificaciones al inicio o al cambiar el filtro
     LaunchedEffect(selectedFilter) {
         loadNotifications(selectedFilter)
     }
 
-    // 7. Contenedor principal
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LivelyOffWhite)
-            .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = "Notificaciones",
-            style = MaterialTheme.typography.headlineLarge,
-            color = LivelyDarkBlue,
-            fontWeight = FontWeight.ExtraBold, // Hacemos el título más audaz
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+    // ------------------
+    // CONTENEDOR PRINCIPAL CON FAB
+    // ------------------
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        FilterButtonsRow(
-            selectedFilter = selectedFilter,
-            onFilterSelected = { filter -> selectedFilter = filter }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LivelyOffWhite)
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-        when {
-            isLoading -> {
-                // Muestra un indicador de progreso mientras carga
-                CircularProgressIndicator(
+            Text(
+                text = "Notificaciones",
+                style = MaterialTheme.typography.headlineLarge,
+                color = LivelyDarkBlue,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FilterButtonsRow(
+                selectedFilter = selectedFilter,
+                onFilterSelected = { filter -> selectedFilter = filter }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when {
+                isLoading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = LivelyGreen
                 )
-            }
-            errorMessage != null -> {
-                // Muestra el mensaje de error
-                Text(
+
+                errorMessage != null -> Text(
                     text = "Error: $errorMessage",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(16.dp)
                 )
-            }
-            notifications.isEmpty() -> {
-                // Muestra mensaje si no hay notificaciones
-                Text(
+
+                notifications.isEmpty() -> Text(
                     text = "No hay notificaciones para mostrar.",
                     color = Color.Gray,
                     modifier = Modifier.padding(16.dp)
                 )
-            }
-            else -> {
-                // 6. Lista de Notificaciones
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    items(notifications) { notification ->
-                        NotificationCard(
-                            notification = notification,
-                            viewModel = viewModel,
-                            onActionSuccess = { loadNotifications(selectedFilter) }
-                        )
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 100.dp)
+                    ) {
+                        items(notifications) { notification ->
+                            NotificationCard(
+                                notification = notification,
+                                viewModel = viewModel,
+                                onActionSuccess = { loadNotifications(selectedFilter) }
+                            )
+                        }
                     }
                 }
             }
         }
+
+        // <-- Aquí invocamos el botón con el diálogo integrado
+        FloatingCreateAlertButton(
+            viewModel = viewModel,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(20.dp)
+        )
     }
 }
+
 
 @Composable
 fun FilterButtonsRow(
@@ -458,6 +466,124 @@ fun NotificationDetailDialog(
                     Text("Cerrar", fontWeight = FontWeight.SemiBold)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun FloatingCreateAlertButton(
+    viewModel: NotificationsViewModel,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    FloatingActionButton(
+        onClick = { showDialog = true },
+        containerColor = Color.Red,
+        contentColor = Color.White,
+        shape = RoundedCornerShape(14.dp),
+        modifier = modifier.size(65.dp)
+    ) {
+        Text("+", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+    }
+
+    if (showDialog) {
+        var title by remember { mutableStateOf("") }
+        var content by remember { mutableStateOf("") }
+        var selectedUserId by remember { mutableLongStateOf(0) }
+        val familyMembers = viewModel.familyMembers
+        val isLoading = viewModel.isLoading
+
+        Dialog(onDismissRequest = { showDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        "Crear Alerta",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = LivelyDarkBlue
+                    )
+
+                    // Título
+                    androidx.compose.material3.OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Título") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Contenido
+                    androidx.compose.material3.OutlinedTextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        label = { Text("Contenido") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Selector de usuario/familiar
+                    Text("Seleccionar familiar:", fontWeight = FontWeight.SemiBold)
+                    if (isLoading) {
+                        CircularProgressIndicator()
+                    } else if (familyMembers.isEmpty()) {
+                        Text("No hay familiares disponibles.")
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.height(150.dp) // Altura limitada para muchos miembros
+                        ) {
+                            items(familyMembers) { member ->
+                                Button(
+                                    onClick = { selectedUserId = member.userId.value },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (selectedUserId == member.userId.value) LivelyGreen else Color(0xFFE0E0E0)
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    Text("${member.firstName} ${member.lastName}", color = if (selectedUserId == member.userId.value) Color.White else LivelyDarkBlue)
+                                }
+                            }
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = { showDialog = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0E0E0))
+                        ) {
+                            Text("Cancelar")
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = {
+                                viewModel.sendNotification(title, content, selectedUserId)
+                                showDialog = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = LivelyGreen),
+                            enabled = title.isNotBlank() && content.isNotBlank()
+                        ) {
+                            Text("Enviar")
+                        }
+                    }
+                }
+            }
+        }
+
+        // Carga los miembros de la familia si aún no están
+        LaunchedEffect(Unit) {
+            viewModel.loadFamilyMembers()
         }
     }
 }
