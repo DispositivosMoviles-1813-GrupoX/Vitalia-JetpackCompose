@@ -10,6 +10,7 @@ import retrofit2.Invocation
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import com.example.vitalia_doctors.payments.data.remote.ReceiptsApiService
 
 object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"
@@ -61,4 +62,13 @@ object RetrofitClient {
             .build()
             .create(DoctorApiService::class.java)
     }
+    val receiptsApiService: ReceiptsApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+            .create(ReceiptsApiService::class.java)
+    }
+
 }

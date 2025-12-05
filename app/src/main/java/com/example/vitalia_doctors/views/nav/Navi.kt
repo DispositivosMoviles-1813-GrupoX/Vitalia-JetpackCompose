@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,9 +31,11 @@ fun Navi(mainActivity: MainActivity) {
 // Define las rutas y los iconos para la navegación inferior.
 sealed class BottomNavItem(
     val route: String,
+
     val icon: ImageVector,
     val label: String
 ) {
+    object Payments : BottomNavItem("payments", Icons.Default.ShoppingCart, "Payments")
 
     object Residents : BottomNavItem("residents", Icons.Default.Person, "Residents")
     // Corresponde a 'Home' en la imagen

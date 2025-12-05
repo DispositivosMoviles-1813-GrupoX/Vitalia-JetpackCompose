@@ -8,15 +8,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +33,9 @@ import com.example.vitalia_doctors.doctor.domain.repository.DoctorRepositoryImpl
 import com.example.vitalia_doctors.doctor.ui.DoctorProfileScreen
 import com.example.vitalia_doctors.doctor.ui.DoctorViewModel
 import com.example.vitalia_doctors.model.client.RetrofitClient
+import com.example.vitalia_doctors.payments.domain.repository.PaymentsRepositoryImpl
+import com.example.vitalia_doctors.payments.ui.DoctorPaymentsScreen
+import com.example.vitalia_doctors.payments.ui.PaymentsViewModel
 import com.example.vitalia_doctors.ui.theme.LivelyDarkBlue
 import com.example.vitalia_doctors.ui.theme.LivelyGreen
 import com.example.vitalia_doctors.ui.theme.LivelyOffWhite
@@ -38,13 +47,24 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
 
     // --- Repositories ---
     val doctorRepository = DoctorRepositoryImpl(RetrofitClient.doctorApiService)
+    val paymentsRepository = PaymentsRepositoryImpl(RetrofitClient.receiptsApiService)
 
     // --- ViewModels (Single Instance for all tabs) ---
-    val doctorViewModel = ViewModelProvider(mainActivity, DoctorViewModel.DoctorViewModelFactory(doctorRepository)).get(DoctorViewModel::class.java)
+    val doctorViewModel = ViewModelProvider(
+        mainActivity,
+        DoctorViewModel.DoctorViewModelFactory(doctorRepository)
+    ).get(DoctorViewModel::class.java)
 
+    val paymentsViewModel = ViewModelProvider(
+        mainActivity,
+        PaymentsViewModel.Factory(paymentsRepository)
+    ).get(PaymentsViewModel::class.java)
+
+    // --- Bottom navigation items ---
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Profile,
+        BottomNavItem.Payments,
         BottomNavItem.Notifications
     )
 
@@ -56,16 +76,25 @@ fun Home(recordarPantalla: NavHostController, mainActivity: MainActivity) {
     ) { paddingValues ->
         NavHost(
             navController = innerNavController,
-            startDestination = BottomNavItem.Home.route, // Iniciar en la pestaña Home
+            startDestination = BottomNavItem.Home.route,
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(BottomNavItem.Home.route) {
-                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text("Vista Home")
                 }
             }
             composable(BottomNavItem.Profile.route) {
-                DoctorProfileScreen(navController = innerNavController, viewModel = doctorViewModel)
+                DoctorProfileScreen(
+                    navController = innerNavController,
+                    viewModel = doctorViewModel
+                )
+            }
+            composable(BottomNavItem.Payments.route) {
+                DoctorPaymentsScreen(viewModel = paymentsViewModel)
             }
             composable(BottomNavItem.Notifications.route) {
                 Notifications(mainActivity = mainActivity)
@@ -89,7 +118,14 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
             NavigationBarItem(
                 icon = {
                     Icon(
-                        imageVector = item.icon,
+                        imageVector = when (item) {
+                            BottomNavItem.Home -> Icons.Filled.Home
+                            BottomNavItem.Profile -> Icons.Filled.Person
+                            BottomNavItem.Payments -> Icons.Filled.ShoppingCart
+                            BottomNavItem.Notifications -> Icons.Filled.Notifications
+                            BottomNavItem.Care -> TODO()
+                            BottomNavItem.Residents -> TODO()
+                        },
                         contentDescription = item.label,
                         tint = if (isSelected) LivelyGreen else Color.Gray
                     )
@@ -97,18 +133,21 @@ fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavI
                 label = {
                     Text(
                         text = item.label,
-                        color = if (isSelected) LivelyGreen else Color.Gray,
-                        fontSize = 10.sp
+                        color = if (isSelected) LivelyGreen else Color.Gray
                     )
                 },
                 selected = isSelected,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    if (currentRoute != item.route) {
+                        navController.navigate(item.route) {
+                            popUpTo(
+                                navController.graph.findStartDestination().id
+                            ) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
